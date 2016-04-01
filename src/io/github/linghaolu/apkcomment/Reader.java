@@ -29,7 +29,7 @@ public class Reader {
         return buffer.getShort(0);
     }
 
-    public static String readChannel(String apkPath, String pemPublicKey) {
+    public static String readComment(String apkPath, String pemPublicKey) {
         RandomAccessFile raf = null;
         try {
             File file = new File(apkPath);

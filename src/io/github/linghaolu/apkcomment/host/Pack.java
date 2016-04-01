@@ -1,16 +1,14 @@
 package io.github.linghaolu.apkcomment.host;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Key;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.zip.ZipFile;
 
@@ -177,19 +175,19 @@ public class Pack {
         return hasComment;
     }
 
-    private static boolean generateChannelFile(String sourceApkPath, String channelId, Key privateKey) {
+    private static File generateChannelFile(String sourceApkPath, String channelId, Key privateKey) {
         File source = new File(sourceApkPath);
         String path = source.getAbsolutePath();
         if (!path.endsWith(".apk")) {
             System.out.println(sourceApkPath + "不是 .apk 文件扩展名");
-            return false;
+            return null;
         }
 
         // 如果已经有 comment 不再处理
         boolean hasComment = hasComment(sourceApkPath);
         if (hasComment) {
             System.out.println(sourceApkPath + "包含 comment，不能再处理。");
-            return false;
+            return null;
         }
 
         int index = path.lastIndexOf(".");
@@ -212,7 +210,7 @@ public class Pack {
 
         if (raf == null) {
             System.out.println("RandomAccessFile not found");
-            return false;
+            return null;
         }
 
         try {
@@ -226,31 +224,94 @@ public class Pack {
 
             raf.close();
 
+            return dest;
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return true;
+        return null;
+    }
+
+    private static List<String> readChannelsFromFile(String channelsListFile) {
+        File file = new File(channelsListFile);
+        List<String> result = new ArrayList<>();
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            String channel = null;
+
+            while ((channel = br.readLine()) != null) {
+                if (channel.length() > 0) {
+                    result.add(channel);
+                }
+            }
+
+            br.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
     }
 
 
-
+    /**
+     * 分两种工作方式, 加密和非加密.
+     *
+     * 加密模式需要提供rsa非对称私钥,pem格式. 可以使用 openssl生成.
+     *
+     * channel_list_file.txt 存储的是渠道号列表.
+     *
+     * 非加密模式(把文本打包)   > java -jar apkcomment.jar source.apk comment
+     * 非加密模式(打多个渠道包) > java -jar apkcomment.jar source.apk channel_list_file.txt
+     * 加密模式(把文本打包)    > java -jar apkcomment.jar source.apk comment rsa_private_key.pem
+     * 加密模式(打多个渠道包   > java -jar apkcomment.jar source.apk channel_list_file.txt rsa_private_key.pem
+     * @param args
+     */
     public static void main(String[] args) {
-        System.out.println("xxx");
 
-        String pemString = RsaUtil.readPem("rsa_private_key.pem");
-        Key privateKey = RsaUtil.generatePrivateKey(pemString);
+        if (args.length < 2) {
+            System.out.println("usege:\n" +
+                    "非加密模式(单个渠道打包)   > java -jar apkcomment.jar source.apk channelId \n"
+                    + "非加密模式(打多个渠道包) > java -jar apkcomment.jar source.apk channel_list_file.txt\n"
+                    + "加密模式(单个打包)    > java -jar apkcomment.jar source.apk channelId rsa_private_key.pem\n"
+                    + "加密模式(打多个渠道包   > java -jar apkcomment.jar source.apk channel_list_file.txt rsa_private_key.pem\n"
+                    + "----- channel_list_file.txt 文件中每个渠道占一行 -----.");
+
+            return;
+        }
+
+        String apkPath = args[0];
+        String channelOrFile = args[1];
+        String privateKeyPath = null;
+
+        if (args.length == 3) {
+            privateKeyPath = args[2];
+        }
+
+        boolean fromFile = new File(channelOrFile).exists();
+
+        File dest = null;
+        Key privateKey = null;
+
+        // 加密模式
+        if (privateKeyPath != null) {
+            String pemString = RsaUtil.readPem(privateKeyPath);
+            privateKey = RsaUtil.generatePrivateKey(pemString);
+        }
+
+        if (fromFile) {
+            List<String> channels = readChannelsFromFile(channelOrFile);
+            for (String channelId : channels) {
+                dest = generateChannelFile(apkPath, channelId, privateKey);
+            }
+        } else {
+            dest = generateChannelFile(apkPath, channelOrFile, privateKey);
+        }
 
 
-        generateChannelFile("app-debug.apk", "haha", null);
+        String result = Reader.readComment(dest.getPath(), null);
 
+        System.out.println("xxx " + result);
 
-
-        pemString = RsaUtil.readPem("rsa_public_key.pem");
-
-        String result = Reader.readChannel("app-debug_haha.apk", pemString);
-
-
-        System.out.println("xxx11 " + result);
     }
 }
