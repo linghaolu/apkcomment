@@ -1,6 +1,16 @@
 package io.github.linghaolu.apkcomment.host;
 
-import java.io.*;
+import io.github.linghaolu.apkcomment.AesUtil;
+import io.github.linghaolu.apkcomment.CommentReader;
+import io.github.linghaolu.apkcomment.RsaUtil;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
@@ -13,10 +23,6 @@ import java.util.Random;
 import java.util.zip.ZipFile;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-
-import io.github.linghaolu.apkcomment.AesUtil;
-import io.github.linghaolu.apkcomment.Reader;
-import io.github.linghaolu.apkcomment.RsaUtil;
 
 /**
  * 桌面打包程序
@@ -214,9 +220,10 @@ public class Pack {
         }
 
         try {
-            raf.seek(length - 2);
-
             byte[] comment = getCommentData(channelId, privateKey);
+
+            // apk 默认没有评论,最后连个字节是个short,表示评论长度 0, 我们需要重写为我们实际的comment长度
+            raf.seek(length - 2);
 
             raf.write(short2bytes((short) comment.length));
 
@@ -288,6 +295,7 @@ public class Pack {
             privateKeyPath = args[2];
         }
 
+        // 如果第二个参数是个文件,则从文件中读取
         boolean fromFile = new File(channelOrFile).exists();
 
         File dest = null;
@@ -300,17 +308,19 @@ public class Pack {
         }
 
         if (fromFile) {
+            // 从渠道文件列表中读取,一行一个
             List<String> channels = readChannelsFromFile(channelOrFile);
             for (String channelId : channels) {
                 dest = generateChannelFile(apkPath, channelId, privateKey);
             }
         } else {
+            // 只一个渠道包
             dest = generateChannelFile(apkPath, channelOrFile, privateKey);
         }
 
 
-        String result = Reader.readComment(dest.getPath(), null);
-
+        // test test test
+        String result = CommentReader.readComment(dest.getPath(), null);
         System.out.println("xxx " + result);
 
     }

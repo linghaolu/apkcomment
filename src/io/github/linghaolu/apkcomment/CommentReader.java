@@ -13,7 +13,7 @@ import java.security.Key;
  *
  * Created by caoht on 2016/3/31.
  */
-public class Reader {
+public class CommentReader {
 
     /**
      * 把从zip中毒出来的2个字节转为 short
