@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.zip.ZipFile;
 
+import static io.github.linghaolu.apkcomment.RsaUtil.readPem;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 /**
@@ -303,7 +304,7 @@ public class Pack {
 
         // 加密模式
         if (privateKeyPath != null) {
-            String pemString = RsaUtil.readPem(privateKeyPath);
+            String pemString = readPem(privateKeyPath);
             privateKey = RsaUtil.generatePrivateKey(pemString);
         }
 
@@ -320,7 +321,18 @@ public class Pack {
 
 
         // test test test
-        String result = CommentReader.readComment(dest.getPath(), null);
+        String publicKey = null;
+        if (privateKeyPath != null) {
+            // 如果制定了rsa 私钥,我们需要用对应的公钥来解密. 这里只是用来测试, 你需要自己生成rsa 密钥对
+            publicKey = RsaUtil.readPem("rsa_public_key.pem");
+
+            // 或者
+            publicKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDXCp/1hq0McJnsdCmOtXIhKQRg\n" +
+                    "EezpMkC6In7KJakBHaifEHTa8P8uSGVzByEfLIAJ2VTqny+zzAhRSCCHAPfZfHta\n" +
+                    "iEw91+CKRrWdXwuJV1/oiX9/3h5Udd/rAj1pheqvti/JRQJmoxLKkUib6TTeZSrX\n" +
+                    "VD/fDsAtMb1ohOhMYQIDAQAB";
+        }
+        String result = CommentReader.readComment(dest.getPath(), publicKey);
         System.out.println("xxx " + result);
 
     }
