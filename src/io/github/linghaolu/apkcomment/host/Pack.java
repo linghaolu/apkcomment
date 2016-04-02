@@ -269,10 +269,6 @@ public class Pack {
      *
      * channel_list_file.txt 存储的是渠道号列表.
      *
-     * 非加密模式(把文本打包)   > java -jar apkcomment.jar source.apk comment
-     * 非加密模式(打多个渠道包) > java -jar apkcomment.jar source.apk channel_list_file.txt
-     * 加密模式(把文本打包)    > java -jar apkcomment.jar source.apk comment rsa_private_key.pem
-     * 加密模式(打多个渠道包   > java -jar apkcomment.jar source.apk channel_list_file.txt rsa_private_key.pem
      * @param args
      */
     public static void main(String[] args) {
