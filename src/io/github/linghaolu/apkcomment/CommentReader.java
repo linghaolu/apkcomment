@@ -50,6 +50,14 @@ public class CommentReader {
                 return null;
             }
 
+            // 读取 zip 的 content Length 做校验,看看是不是等于我们的数据长度.如果不是那就是遭到了破坏.
+            raf.seek(fileLength - dataLength - 2);
+            raf.read(lengthByte);
+            short commentLength = bytes2Short(lengthByte, 0);
+            if (commentLength != dataLength) {
+                return null;
+            }
+
             // 指针移动到 comments数据开始地方
             raf.seek(fileLength - dataLength);
 
