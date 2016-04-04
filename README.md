@@ -48,3 +48,8 @@
 `java -jar apkcomment.jar source.apk channel_id rsa_private_key.pem`
 
 `java -jar apkcomment.jar source.apk channel_list.txt rsa_private_key.pem`
+
+
+# 存在的问题 #
+
+Android N 中提到了 APK Signature Scheme v2，这种新引入的签名机制，会对整个文件的每个字节都会做校验，包括 comment 区域。所以到时候如果app使用新版本的签名工具的时候，如果启用 scheme v2，那么这个机制则不能工作。目前看代码，是可以disable v2 的。不过具体的运行机制，还需要正式版本出来。 
