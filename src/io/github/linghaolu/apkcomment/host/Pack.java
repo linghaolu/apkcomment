@@ -97,7 +97,7 @@ public class Pack {
                 data = content.getBytes();
             }
 
-            byte[] encryptdKey = new byte[0];;
+            byte[] encryptdKey = new byte[0];
             if (encrypt) {
                 encryptdKey = RsaUtil.encryptByPrivateKey(aesKey, privateKey);
             }
@@ -242,7 +242,7 @@ public class Pack {
 
     private static List<String> readChannelsFromFile(String channelsListFile) {
         File file = new File(channelsListFile);
-        List<String> result = new ArrayList<>();
+        List<String> result = new ArrayList<String>();
         try {
             BufferedReader br = new BufferedReader(new FileReader(file));
             String channel = null;
@@ -330,6 +330,5 @@ public class Pack {
         }
         String result = CommentReader.readComment(dest.getPath(), publicKey);
         System.out.println("xxx " + result);
-
     }
 }

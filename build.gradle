@@ -1,0 +1,40 @@
+group 'io.github.linghaolu'
+version '1.0'
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.6
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir "src"
+        }
+    }
+}
+
+//  android app 使用的jar
+task apijar(type: Jar) {
+    from sourceSets.main.output
+    exclude "io/github/linghaolu/apkcomment/host"
+
+    archiveName = project.name + "_" + version + ".jar"
+}
+
+// host.jar pc机上用来运行的jar
+jar {
+    manifest {
+        from "META-INF/MANIFEST.MF"
+    }
+    archiveName = project.name + ".jar"
+}
+// 让 apijar 得到执行
+jar.dependsOn apijar
