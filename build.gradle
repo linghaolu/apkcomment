@@ -37,4 +37,9 @@ jar {
     archiveName = project.name + ".jar"
 }
 // 让 apijar 得到执行
-jar.dependsOn apijar
+// jar.dependsOn apijar
+artifacts {
+    archives jar
+    archives apijar
+}
+
